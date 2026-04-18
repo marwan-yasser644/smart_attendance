@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session {% if reason == 'expired' %}Expired{% else %}Closed{% endif %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Sora',sans-serif;
+      background: {% if reason == 'expired' %}linear-gradient(135deg,#78350f,#92400e,#b45309){% else %}linear-gradient(135deg,#1e1b4b,#3730a3,#4338ca){% endif %};
+      min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+    }
+    .card {
+      background:white; border-radius:24px; padding:40px;
+      max-width:380px; width:100%; text-align:center;
+      box-shadow:0 24px 80px rgba(0,0,0,.3);
+      animation:popIn .4s ease both;
+    }
+    @keyframes popIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+    .icon {
+      width:72px; height:72px;
+      background: {% if reason == 'expired' %}#fef3c7{% else %}#ede9fe{% endif %};
+      border-radius:50%; margin:0 auto 20px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:2rem;
+      color: {% if reason == 'expired' %}#d97706{% else %}#6d28d9{% endif %};
+    }
+    h1 { font-size:1.5rem; font-weight:800; color:#0f172a; margin-bottom:8px; }
+    p { color:#64748b; font-size:.88rem; line-height:1.6; margin-bottom:6px; }
+    .info-box {
+      background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;
+      padding:14px; margin-top:20px;
+    }
+    .info-box .course { font-weight:700; color:#1e293b; }
+    .info-box .detail { font-size:.8rem; color:#64748b; margin-top:3px; }
+    .logos { display:flex; gap:10px; justify-content:center; margin-top:20px; opacity:.6; }
+    .logos img { height:36px; width:36px; object-fit:contain;
+                 background:#0d1b4b; border-radius:8px; padding:3px; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">
+    <i class="bi bi-{% if reason == 'expired' %}clock-history{% else %}stop-circle{% endif %}"></i>
+  </div>
+  <h1>Session {% if reason == 'expired' %}Expired{% else %}Closed{% endif %}</h1>
+  {% if reason == 'expired' %}
+    <p>This attendance session has expired. The QR code is no longer accepting submissions.</p>
+    <p style="margin-top:6px">Please contact your lecturer if you believe this is an error.</p>
+  {% else %}
+    <p>This session has been closed by the lecturer and is no longer accepting new attendance submissions.</p>
+  {% endif %}
+  <div class="info-box">
+    <div class="course">{{ sess.course_code }} — {{ sess.title }}</div>
+    <div class="detail">{{ sess.course_name }}</div>
+    <div class="detail" style="margin-top:6px">
+      Expired at: {{ sess.expires_at.strftime('%H:%M, %d %b %Y') }}
+    </div>
+  </div>
+  <div class="logos">
+    <img src="{{ url_for('static', filename='images/logo_kfs.png') }}" alt="KFU">
+    <img src="{{ url_for('static', filename='images/logo_ai.png') }}" alt="AI">
+  </div>
+</div>
+</body>
+</html>

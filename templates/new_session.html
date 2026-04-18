@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}New Session{% endblock %}
+
+{% block content %}
+<div class="topbar fade-in">
+  <div>
+    <h1>Create Session</h1>
+    <p style="color:var(--text-muted);font-size:.85rem;margin-top:3px">Generate a new QR attendance session</p>
+  </div>
+  <a href="{{ url_for('dashboard') }}" class="btn-outline-kfu">
+    <i class="bi bi-arrow-left"></i> Back
+  </a>
+</div>
+
+<div class="row justify-content-center fade-in">
+  <div class="col-lg-7">
+    <div class="card p-4">
+      <h5 style="font-weight:700;margin-bottom:4px">Session Details</h5>
+      <p style="color:var(--text-muted);font-size:.83rem;margin-bottom:24px">
+        Fill in the details below. A unique QR code will be generated automatically.
+      </p>
+
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Course Code <span style="color:var(--kfu-danger)">*</span></label>
+          <input type="text" name="course_code" class="form-control"
+                 placeholder="e.g. AI301, CS102" required maxlength="20">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Course Name <span style="color:var(--kfu-danger)">*</span></label>
+          <input type="text" name="course_name" class="form-control"
+                 placeholder="e.g. Machine Learning Fundamentals" required maxlength="200">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Session Title <span style="color:var(--kfu-danger)">*</span></label>
+          <input type="text" name="title" class="form-control"
+                 placeholder="e.g. Lecture 5 — Neural Networks" required maxlength="200">
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Session Duration</label>
+          <select name="duration" class="form-select">
+            <option value="5">5 minutes</option>
+            <option value="10" selected>10 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="20">20 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60">60 minutes</option>
+          </select>
+          <div style="font-size:.76rem;color:var(--text-muted);margin-top:5px">
+            <i class="bi bi-info-circle"></i> After this time, the QR code will stop accepting new submissions.
+          </div>
+        </div>
+
+        <!-- Info box -->
+        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px 16px;margin-bottom:22px;font-size:.83rem;color:#0369a1">
+          <i class="bi bi-lightbulb-fill"></i>
+          <strong>How it works:</strong> After creating the session, you'll get a QR code.
+          Display it on your screen or projector. Students scan it with their phone camera
+          and submit their attendance — no app needed.
+        </div>
+
+        <button type="submit" class="btn-primary-kfu w-100" style="justify-content:center;padding:13px">
+          <i class="bi bi-qr-code-scan"></i> Create Session & Generate QR
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

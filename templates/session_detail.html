@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}{{ sess.course_code }} — Session{% endblock %}
+
+{% block content %}
+<div class="topbar fade-in">
+  <div>
+    <h1>{{ sess.course_code }}: {{ sess.title }}</h1>
+    <p style="color:var(--text-muted);font-size:.85rem;margin-top:3px">
+      {{ sess.course_name }} · {{ sess.created_at.strftime('%A, %d %B %Y') }}
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('export_csv', session_uuid=sess.session_uuid) }}" class="btn-outline-kfu">
+      <i class="bi bi-download"></i> Export CSV
+    </a>
+    <a href="{{ url_for('dashboard') }}" class="btn-outline-kfu">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+</div>
+
+<div class="row g-4 fade-in">
+
+  <!-- QR Code Panel -->
+  <div class="col-lg-4">
+    <div class="card p-4 text-center">
+      <div class="mb-3">
+        {% if sess.is_open %}
+          <span class="badge-open fs-6"><i class="bi bi-broadcast"></i> Session Live</span>
+        {% elif sess.is_expired %}
+          <span class="badge-expired fs-6"><i class="bi bi-clock"></i> Expired</span>
+        {% else %}
+          <span class="badge-closed fs-6"><i class="bi bi-stop-circle"></i> Closed</span>
+        {% endif %}
+      </div>
+
+      <div class="qr-container mx-auto mb-3">
+        <img src="{{ url_for('generate_qr', session_uuid=sess.session_uuid) }}"
+             alt="QR Code" id="qrImage" style="max-width:220px;width:100%">
+      </div>
+
+      {% if sess.is_open %}
+      <div class="mb-3">
+        <p style="font-size:.75rem;color:var(--text-muted);margin-bottom:4px">Time Remaining</p>
+        <div class="timer-display" id="timer">--:--</div>
+      </div>
+      {% endif %}
+
+      <div style="background:#f8fafc;border-radius:10px;padding:10px 12px;margin-bottom:12px">
+        <p style="font-size:.7rem;color:var(--text-muted);margin-bottom:4px">Attendance URL</p>
+        <a href="{{ attendance_url }}" target="_blank"
+           style="font-size:.72rem;color:var(--kfu-accent);word-break:break-all;font-weight:600">
+          {{ attendance_url }}
+        </a>
+      </div>
+
+      <button onclick="copyUrl()" class="btn-outline-kfu w-100 mb-2" id="copyBtn">
+        <i class="bi bi-clipboard"></i> Copy Link
+      </button>
+
+      <a href="{{ url_for('generate_qr', session_uuid=sess.session_uuid) }}" download="qr_{{ sess.course_code }}.png"
+         class="btn-outline-kfu w-100 mb-2">
+        <i class="bi bi-image"></i> Download QR
+      </a>
+
+      {% if sess.is_open %}
+      <form method="POST" action="{{ url_for('close_session', session_uuid=sess.session_uuid) }}">
+        <button type="submit" class="w-100 mt-1"
+                style="background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:10px;
+                       padding:8px 16px;font-size:.82rem;font-weight:600;cursor:pointer;
+                       font-family:'Sora',sans-serif;transition:all .18s">
+          <i class="bi bi-stop-circle"></i> Close Session
+        </button>
+      </form>
+      {% endif %}
+    </div>
+
+    <!-- Session Info -->
+    <div class="card p-3 mt-3">
+      <p style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px">Session Info</p>
+      <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border);font-size:.83rem">
+        <span style="color:var(--text-muted)">Course Code</span>
+        <strong>{{ sess.course_code }}</strong>
+      </div>
+      <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border);font-size:.83rem">
+        <span style="color:var(--text-muted)">Started</span>
+        <strong>{{ sess.created_at.strftime('%H:%M') }}</strong>
+      </div>
+      <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border);font-size:.83rem">
+        <span style="color:var(--text-muted)">Expires</span>
+        <strong>{{ sess.expires_at.strftime('%H:%M') }}</strong>
+      </div>
+      <div class="d-flex justify-content-between py-2" style="font-size:.83rem">
+        <span style="color:var(--text-muted)">Students</span>
+        <strong style="color:var(--kfu-accent)">{{ sess.student_count }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance List -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="d-flex align-items-center justify-content-between p-3"
+           style="border-bottom:1px solid var(--border)">
+        <div>
+          <h5 style="font-weight:700;margin:0">Attendance List</h5>
+          <p style="font-size:.78rem;color:var(--text-muted);margin:0">
+            <span id="liveCount">{{ records|length }}</span> student(s) checked in
+          </p>
+        </div>
+        {% if sess.is_open %}
+        <div style="display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--kfu-success);font-weight:600">
+          <span style="width:8px;height:8px;background:var(--kfu-success);border-radius:50%;display:inline-block;animation:pulse 1.5s infinite"></span>
+          Auto-updating
+        </div>
+        {% endif %}
+      </div>
+
+      {% if records %}
+      <div class="table-responsive">
+        <table class="sessions-table" id="attendanceTable">
+          <thead>
+            <tr>
+              <th width="40">#</th>
+              <th>Student Name</th>
+              <th>Student ID</th>
+              <th>Checked In</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceBody">
+            {% for r in records %}
+            <tr>
+              <td style="color:var(--text-muted);font-size:.8rem">{{ loop.index }}</td>
+              <td style="font-weight:600">{{ r.student_name }}</td>
+              <td>
+                <span style="font-family:monospace;background:#f0f4ff;padding:3px 8px;border-radius:6px;
+                             font-size:.83rem;font-weight:600;color:var(--kfu-navy)">
+                  {{ r.student_id }}
+                </span>
+              </td>
+              <td style="font-size:.8rem;color:var(--text-muted)">
+                {{ r.submitted_at.strftime('%H:%M:%S') }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5" id="emptyState">
+        <i class="bi bi-qr-code-scan" style="font-size:2.5rem;color:#cbd5e1"></i>
+        <p style="margin-top:12px;color:var(--text-muted);font-weight:500">
+          Waiting for students to scan...
+        </p>
+        <p style="font-size:.8rem;color:#94a3b8">Share the QR code or link with your class</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const sessionUUID = "{{ sess.session_uuid }}";
+  const isOpen = {{ 'true' if sess.is_open else 'false' }};
+  const expiresAt = new Date("{{ sess.expires_at.isoformat() }}Z");
+  const attendanceUrl = "{{ attendance_url }}";
+
+  // ── Timer ──────────────────────────────────────────────────────────────────
+  function updateTimer() {
+    const now = new Date();
+    const diff = Math.max(0, Math.floor((expiresAt - now) / 1000));
+    const min = Math.floor(diff / 60);
+    const sec = diff % 60;
+    const el = document.getElementById('timer');
+    if (!el) return;
+    el.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    if (diff < 60) el.classList.add('urgent');
+    else el.classList.remove('urgent');
+    if (diff === 0) location.reload();
+  }
+
+  if (isOpen) {
+    updateTimer();
+    setInterval(updateTimer, 1000);
+
+    // ── Live attendance polling ──────────────────────────────────────────────
+    let currentCount = {{ records|length }};
+    async function pollAttendance() {
+      try {
+        const r = await fetch(`/api/session/${sessionUUID}/status`);
+        const data = await r.json();
+        if (data.student_count > currentCount) {
+          location.reload();
+        }
+      } catch(e) {}
+    }
+    setInterval(pollAttendance, 5000);
+  }
+
+  // ── Copy URL ───────────────────────────────────────────────────────────────
+  function copyUrl() {
+    navigator.clipboard.writeText(attendanceUrl).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+      btn.style.background = 'var(--kfu-success)';
+      btn.style.color = 'white';
+      btn.style.borderColor = 'var(--kfu-success)';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy Link';
+        btn.style = '';
+      }, 2000);
+    });
+  }
+</script>
+{% endblock %}
