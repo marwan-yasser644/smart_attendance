@@ -239,4 +239,4 @@ smart_attendance/
 
 *Built for the Faculty of Artificial Intelligence · Kafrelsheikh University*
 #   s m a r t _ a t t e n d a n c e  
- 
+ # smart_attendance
