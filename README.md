@@ -1,4 +1,4 @@
-# 🎓 KFU Smart Attendance System
+# 🎓 KSU Smart Attendance System
 **Faculty of Artificial Intelligence · Kafrelsheikh University**
 
 A production-ready QR-based attendance system for university lectures. Students scan a QR code with their phone (no app required), submit their name and ID, and attendance is recorded instantly online.
@@ -238,5 +238,6 @@ smart_attendance/
 ---
 
 *Built for the Faculty of Artificial Intelligence · Kafrelsheikh University*
-#   s m a r t _ a t t e n d a n c e  
+#   s m a r t _ a t t e n d a n c e 
+ 
  # smart_attendance
