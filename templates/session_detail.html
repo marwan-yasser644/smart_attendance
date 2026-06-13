@@ -10,10 +10,10 @@
     </p>
   </div>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('export_csv', session_uuid=sess.session_uuid) }}" class="btn-outline-kfu">
+    <a href="{{ url_for('main.export_csv', session_uuid=sess.session_uuid) }}" class="btn-outline-kfu">
       <i class="bi bi-download"></i> Export CSV
     </a>
-    <a href="{{ url_for('dashboard') }}" class="btn-outline-kfu">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-outline-kfu">
       <i class="bi bi-arrow-left"></i> Back
     </a>
   </div>
@@ -35,7 +35,7 @@
       </div>
 
       <div class="qr-container mx-auto mb-3">
-        <img src="{{ url_for('generate_qr', session_uuid=sess.session_uuid) }}"
+        <img src="{{ url_for('main.generate_qr', session_uuid=sess.session_uuid) }}"
              alt="QR Code" id="qrImage" style="max-width:220px;width:100%">
       </div>
 
@@ -58,13 +58,13 @@
         <i class="bi bi-clipboard"></i> Copy Link
       </button>
 
-      <a href="{{ url_for('generate_qr', session_uuid=sess.session_uuid) }}" download="qr_{{ sess.course_code }}.png"
+      <a href="{{ url_for('main.generate_qr', session_uuid=sess.session_uuid) }}" download="qr_{{ sess.course_code }}.png"
          class="btn-outline-kfu w-100 mb-2">
         <i class="bi bi-image"></i> Download QR
       </a>
 
       {% if sess.is_open %}
-      <form method="POST" action="{{ url_for('close_session', session_uuid=sess.session_uuid) }}">
+      <form method="POST" action="{{ url_for('main.close_session', session_uuid=sess.session_uuid) }}">
         <button type="submit" class="w-100 mt-1"
                 style="background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:10px;
                        padding:8px 16px;font-size:.82rem;font-weight:600;cursor:pointer;

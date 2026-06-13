@@ -305,10 +305,10 @@
 
   <nav class="sidebar-nav">
     <div class="nav-label">Main</div>
-    <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' }}">
+    <a href="{{ url_for('main.dashboard') }}" class="{{ 'active' if request.endpoint == 'main.dashboard' }}">
       <i class="bi bi-grid-1x2"></i> Dashboard
     </a>
-    <a href="{{ url_for('new_session') }}" class="{{ 'active' if request.endpoint == 'new_session' }}">
+    <a href="{{ url_for('main.new_session') }}" class="{{ 'active' if request.endpoint == 'main.new_session' }}">
       <i class="bi bi-plus-circle"></i> New Session
     </a>
 
@@ -319,7 +319,7 @@
   </nav>
 
   <div class="sidebar-footer">
-    <a href="{{ url_for('logout') }}">
+    <a href="{{ url_for('main.logout') }}">
       <i class="bi bi-box-arrow-left"></i> Sign Out
     </a>
   </div>

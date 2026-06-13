@@ -145,6 +145,56 @@ This project was built for the **Faculty of Artificial Intelligence — Kafrelsh
 
 ---
 
+# 🌍 External Student Access (Mobile Data)
+
+The system is designed for **college servers** and fully supports students submitting attendance via mobile data.
+
+### How It Works
+
+| Scenario | Support |
+|----------|---------|
+| Students on college Wi-Fi | ✅ Works immediately |
+| Students on mobile data (campus) | ✅ Set `BASE_URL` to college's public IP |
+| Students off-campus via mobile | ✅ Use college's domain or public server |
+| Demo/Testing with ngrok | ✅ Works instantly for testing |
+
+### Configuration for Mobile Data Access
+
+To enable students to submit attendance from mobile data:
+
+1. **Set the `BASE_URL` environment variable** to your college's public address:
+   ```bash
+   BASE_URL=http://192.168.1.50:5000
+   # or with domain:
+   BASE_URL=https://attendance.college.edu
+   ```
+
+2. **Open firewall** for inbound traffic on port 5000 (or your configured port)
+
+3. **Generate QR codes** — they now point to your college's public server
+
+4. **Students scan QR codes** with mobile data → Attendance submitted ✅
+
+### Example Setup
+
+```
+College Server (Public IP: 192.168.1.50)
+│
+├─ Gunicorn running on port 5000
+├─ PostgreSQL database
+└─ Firewall allows TCP 5000
+
+BASE_URL=http://192.168.1.50:5000
+        ↓
+QR Code generates: http://192.168.1.50:5000/attend/<uuid>
+        ↓
+Student on mobile data scans and submits ✅
+```
+
+For full deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+---
+
 # 📐 System Architecture
 
 ```text
