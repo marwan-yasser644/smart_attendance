@@ -83,6 +83,46 @@ class Student(db.Model):
 
     section = db.relationship('Section', back_populates='students')
 
+    @classmethod
+    def create_student(cls, student_id: str, full_name: str, email: str = None, section_id: int = None):
+        """
+        Create and insert a new student into the database.
+        
+        Args:
+            student_id: Unique student ID
+            full_name: Student's full name
+            email: Student's email (optional)
+            section_id: Associated section ID (optional)
+        
+        Returns:
+            Student object or None if student already exists
+        """
+        # Check if student already exists
+        existing = cls.query.filter_by(student_id=student_id).first()
+        if existing:
+            return None
+        
+        student = cls(
+            student_id=student_id,
+            full_name=full_name,
+            email=email,
+            section_id=section_id
+        )
+        db.session.add(student)
+        db.session.commit()
+        return student
+    
+    def to_dict(self):
+        """Convert student to dictionary for JSON responses."""
+        return {
+            'id': self.id,
+            'student_id': self.student_id,
+            'full_name': self.full_name,
+            'email': self.email,
+            'section_id': self.section_id,
+            'created_at': self.created_at.isoformat()
+        }
+
 
 class AttendanceSession(db.Model):
     __tablename__ = 'attendance_sessions'
@@ -140,3 +180,84 @@ class AttendanceRecord(db.Model):
     def make_hash(session_id: int, student_id: str) -> str:
         raw = f"{session_id}:{student_id.strip().upper()}"
         return hashlib.sha256(raw.encode('utf-8')).hexdigest()
+    
+    @classmethod
+    def record_attendance(cls, session_id: int, student_id: str, student_name: str, ip_address: str = None):
+        """
+        Record student attendance for a session.
+        Prevents duplicate submissions using submission_hash.
+        
+        Args:
+            session_id: The attendance session ID
+            student_id: Unique student ID
+            student_name: Student's full name
+            ip_address: Student's IP address (optional)
+        
+        Returns:
+            Tuple of (AttendanceRecord object, bool success)
+        """
+        submission_hash = cls.make_hash(session_id, student_id)
+        
+        # Check if this student already submitted for this session
+        existing = cls.query.filter_by(submission_hash=submission_hash).first()
+        if existing:
+            return (existing, False)  # Duplicate submission
+        
+        record = cls(
+            session_id=session_id,
+            student_id=student_id.strip().upper(),
+            student_name=student_name,
+            ip_address=ip_address,
+            submission_hash=submission_hash
+        )
+        db.session.add(record)
+        db.session.commit()
+        return (record, True)  # New submission
+    
+    @classmethod
+    def get_attendance_by_date_range(cls, start_date: datetime, end_date: datetime):
+        """
+        Query attendance records between two dates.
+        Uses indexed submitted_at column for fast queries.
+        
+        Args:
+            start_date: Start datetime
+            end_date: End datetime
+        
+        Returns:
+            List of AttendanceRecord objects
+        """
+        return cls.query.filter(
+            cls.submitted_at >= start_date,
+            cls.submitted_at <= end_date
+        ).order_by(cls.submitted_at.desc()).all()
+    
+    @classmethod
+    def get_student_attendance_by_date(cls, student_id: str, start_date: datetime, end_date: datetime):
+        """
+        Get a specific student's attendance records within a date range.
+        
+        Args:
+            student_id: Student ID
+            start_date: Start datetime
+            end_date: End datetime
+        
+        Returns:
+            List of AttendanceRecord objects
+        """
+        return cls.query.filter(
+            cls.student_id == student_id.strip().upper(),
+            cls.submitted_at >= start_date,
+            cls.submitted_at <= end_date
+        ).order_by(cls.submitted_at.desc()).all()
+    
+    def to_dict(self):
+        """Convert record to dictionary for JSON responses."""
+        return {
+            'id': self.id,
+            'session_id': self.session_id,
+            'student_id': self.student_id,
+            'student_name': self.student_name,
+            'submitted_at': self.submitted_at.isoformat(),
+            'ip_address': self.ip_address
+        }
