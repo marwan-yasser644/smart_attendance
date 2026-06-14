@@ -70,9 +70,15 @@ def create_app(config_object: type[Config] | None = None) -> Flask:
     app.register_blueprint(main_bp)
 
     with app.app_context():
-        migrate_sqlite_schema(app)
-        db.create_all()
-        seed_demo_lecturer(app)
+        try:
+            migrate_sqlite_schema(app)
+            db.create_all()
+            seed_demo_lecturer(app)
+        except Exception as e:
+            # Log but don't crash in production - database may be unavailable initially
+            if app.config.get('FLASK_ENV') != 'production':
+                raise
+            app.logger.error(f"Database initialization warning: {e}")
 
     return app
 
