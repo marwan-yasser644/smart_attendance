@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mark Attendance — {{ sess.course_code }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --navy:#0d1b4b; --accent:#2563eb; --gold:#f59e0b;
+      --success:#10b981; --danger:#ef4444;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Sora',sans-serif;
+      background: linear-gradient(135deg, #0d1b4b 0%, #1a3a8f 50%, #2563eb 100%);
+      min-height:100vh; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; padding:20px;
+    }
+
+    .attend-card {
+      background:white; border-radius:24px;
+      width:100%; max-width:420px;
+      box-shadow:0 24px 80px rgba(0,0,0,.35);
+      overflow:hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--navy), var(--accent));
+      padding:24px; text-align:center; color:white;
+      position:relative;
+    }
+
+    .card-header .logos {
+      display:flex; gap:10px; justify-content:center; margin-bottom:14px;
+    }
+    .card-header .logos img {
+      height:48px; width:48px; object-fit:contain;
+      background:white; border-radius:10px; padding:3px;
+      box-shadow:0 4px 12px rgba(0,0,0,.3);
+    }
+
+    .card-header h2 {
+      font-size:1.15rem; font-weight:800; margin-bottom:3px;
+    }
+    .card-header .sub { font-size:.78rem; opacity:.75; }
+
+    .session-info {
+      background:rgba(255,255,255,.1);
+      border-radius:12px; padding:10px 14px;
+      margin-top:14px; text-align:left;
+    }
+    .session-info .course-code {
+      font-family:'JetBrains Mono',monospace; font-size:.82rem;
+      background:var(--gold); color:var(--navy);
+      padding:2px 8px; border-radius:6px; font-weight:700;
+      display:inline-block; margin-bottom:4px;
+    }
+    .session-info .session-title {
+      font-size:.88rem; font-weight:600;
+    }
+
+    .timer-bar {
+      height:5px; background:rgba(255,255,255,.2); position:relative;
+    }
+    .timer-fill {
+      height:100%; background:var(--gold);
+      transition:width 1s linear;
+      border-radius:0 3px 3px 0;
+    }
+
+    .card-body { padding:26px; }
+
+    .form-group { margin-bottom:18px; }
+    label {
+      font-size:.8rem; font-weight:700; color:#374151;
+      display:block; margin-bottom:7px;
+      text-transform:uppercase; letter-spacing:.05em;
+    }
+    .input-wrap { position:relative; }
+    .input-wrap i {
+      position:absolute; left:13px; top:50%; transform:translateY(-50%);
+      color:#9ca3af; font-size:1rem;
+    }
+    input {
+      width:100%; padding:13px 13px 13px 40px;
+      border:2px solid #e5e7eb; border-radius:12px;
+      font-family:'Sora',sans-serif; font-size:.95rem;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    input:focus {
+      outline:none; border-color:var(--accent);
+      box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    }
+    input.error { border-color:var(--danger); }
+
+    .error-msg {
+      background:#fee2e2; color:#991b1b;
+      border-radius:10px; padding:10px 13px;
+      font-size:.8rem; margin-bottom:16px;
+    }
+    .error-msg i { margin-right:5px; }
+
+    .btn-submit {
+      width:100%; background:var(--accent); color:white;
+      border:none; border-radius:12px; padding:14px;
+      font-family:'Sora',sans-serif; font-size:1rem; font-weight:700;
+      cursor:pointer; transition:all .2s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-submit:hover { background:#1d4ed8; transform:translateY(-2px); box-shadow:0 8px 24px rgba(37,99,235,.4); }
+    .btn-submit:active { transform:none; }
+
+    .timer-text {
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      font-size:.78rem; color:#6b7280; margin-top:16px; text-align:center;
+    }
+    .timer-value {
+      font-family:'JetBrains Mono',monospace; font-weight:700;
+      color:var(--accent); font-size:.88rem;
+    }
+    .timer-value.urgent { color:var(--danger); }
+
+    .footer-brand {
+      text-align:center; margin-top:18px;
+      font-size:.72rem; color:rgba(255,255,255,.5);
+    }
+
+    @media (max-width: 460px) {
+      .card-body { padding:20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="attend-card">
+  <div class="card-header">
+    <div class="logos">
+      <img src="{{ url_for('static', filename='images/logo_kfs.png') }}" alt="KFU">
+      <img src="{{ url_for('static', filename='images/logo_ai.png') }}" alt="AI">
+    </div>
+    <h2>Mark Your Attendance</h2>
+    <p class="sub">Faculty of Artificial Intelligence · Kafrelsheikh University</p>
+
+    <div class="session-info">
+      <div class="course-code">{{ sess.course_code }}</div>
+      <div class="session-title">{{ sess.title }}</div>
+      <div style="font-size:.75rem;opacity:.7;margin-top:2px">{{ sess.course_name }}</div>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="timer-bar">
+    <div class="timer-fill" id="timerFill" style="width:100%"></div>
+  </div>
+
+  <div class="card-body">
+
+    {% if errors %}
+    <div class="error-msg">
+      {% for e in errors %}
+      <div><i class="bi bi-exclamation-circle"></i> {{ e }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" id="attendForm">
+      <div class="form-group">
+        <label>Full Name</label>
+        <div class="input-wrap">
+          <i class="bi bi-person-fill"></i>
+          <input type="text" name="student_name"
+                 placeholder="Enter your full name"
+                 value="{{ student_name }}"
+                 required minlength="3" autocomplete="name"
+                 class="{{ 'error' if errors and not student_name }}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Student ID</label>
+        <div class="input-wrap">
+          <i class="bi bi-id-card-fill"></i>
+          <input type="text" name="student_id"
+                 placeholder="e.g. 220010234"
+                 value="{{ student_id }}"
+                 required minlength="3" autocomplete="off"
+                 style="text-transform:uppercase"
+                 class="{{ 'error' if errors and not student_id }}">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <i class="bi bi-check-circle-fill"></i>
+        Submit Attendance
+      </button>
+    </form>
+
+    <div class="timer-text">
+      <i class="bi bi-clock"></i>
+      Session closes in <span class="timer-value" id="timerText">--:--</span>
+    </div>
+  </div>
+</div>
+
+<div class="footer-brand">
+  Smart Attendance System · Kafrelsheikh University
+</div>
+
+<script>
+  const expiresAt = new Date("{{ sess.expires_at.isoformat() }}Z");
+  const createdAt = new Date("{{ sess.created_at.isoformat() }}Z");
+  const totalDuration = expiresAt - createdAt;
+
+  function updateTimer() {
+    const now = new Date();
+    const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+    const elapsed = now - createdAt;
+    const pct = Math.max(0, Math.min(100, 100 - (elapsed / totalDuration * 100)));
+
+    const min = Math.floor(remaining / 60);
+    const sec = remaining % 60;
+    const txt = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+
+    const timerText = document.getElementById('timerText');
+    const timerFill = document.getElementById('timerFill');
+
+    if (timerText) {
+      timerText.textContent = txt;
+      if (remaining < 60) timerText.classList.add('urgent');
+    }
+    if (timerFill) {
+      timerFill.style.width = pct + '%';
+      if (pct < 20) timerFill.style.background = '#ef4444';
+      else if (pct < 40) timerFill.style.background = '#f59e0b';
+    }
+
+    if (remaining === 0) {
+      window.location.href = window.location.href;
+    }
+  }
+
+  updateTimer();
+  setInterval(updateTimer, 1000);
+
+  // Prevent double submit
+  document.getElementById('attendForm').addEventListener('submit', function() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting...';
+  });
+
+  // Auto-uppercase student ID
+  document.querySelector('input[name="student_id"]').addEventListener('input', function() {
+    const pos = this.selectionStart;
+    this.value = this.value.toUpperCase();
+    this.setSelectionRange(pos, pos);
+  });
+</script>
+</body>
+</html>

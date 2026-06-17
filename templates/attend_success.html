@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Confirmed ✓</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Sora',sans-serif;
+      background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #059669 100%);
+      min-height:100vh; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; padding:20px;
+    }
+
+    .success-card {
+      background:white; border-radius:24px;
+      max-width:400px; width:100%;
+      box-shadow:0 24px 80px rgba(0,0,0,.3);
+      overflow:hidden; text-align:center;
+      animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes popIn {
+      from { opacity:0; transform:scale(.8) translateY(20px); }
+      to   { opacity:1; transform:none; }
+    }
+
+    .success-header {
+      background: linear-gradient(135deg, #065f46, #10b981);
+      padding:32px 24px; color:white;
+    }
+
+    .check-icon {
+      width:72px; height:72px; background:white; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 16px;
+      font-size:2rem; color:#10b981;
+      box-shadow:0 8px 24px rgba(0,0,0,.2);
+      animation: checkPop .4s .3s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes checkPop {
+      from { transform:scale(0); } to { transform:scale(1); }
+    }
+
+    .success-header h1 { font-size:1.5rem; font-weight:800; margin-bottom:4px; }
+    .success-header p  { font-size:.85rem; opacity:.8; }
+
+    .logos { display:flex; gap:10px; justify-content:center; margin-top:16px; }
+    .logos img {
+      height:40px; width:40px; object-fit:contain;
+      background:white; border-radius:8px; padding:2px;
+    }
+
+    .success-body { padding:28px; }
+
+    .info-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:11px 0; border-bottom:1px solid #f0f4ff;
+      font-size:.87rem;
+    }
+    .info-row:last-child { border:none; }
+    .info-row .lbl { color:#64748b; font-weight:500; }
+    .info-row .val { font-weight:700; color:#0f172a; text-align:right; }
+    .info-row .val.code {
+      font-family:'JetBrains Mono',monospace;
+      background:#f0f4ff; color:#1e40af;
+      padding:3px 8px; border-radius:6px; font-size:.85rem;
+    }
+
+    .stamp {
+      background:linear-gradient(135deg,#d1fae5,#a7f3d0);
+      border:2px solid #6ee7b7; border-radius:12px;
+      padding:14px; margin-top:20px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .stamp i { font-size:1.5rem; color:#059669; }
+    .stamp .stamp-text { text-align:left; }
+    .stamp .stamp-text strong { font-size:.88rem; color:#065f46; display:block; }
+    .stamp .stamp-text span { font-size:.75rem; color:#047857; }
+
+    .footer { padding:0 28px 24px; }
+    .footer p {
+      font-size:.75rem; color:#94a3b8; text-align:center;
+      line-height:1.6;
+    }
+  </style>
+</head>
+<body>
+
+<div class="success-card">
+  <div class="success-header">
+    <div class="check-icon"><i class="bi bi-check-lg"></i></div>
+    <h1>Attendance Recorded!</h1>
+    <p>Your attendance has been successfully submitted</p>
+    <div class="logos">
+      <img src="{{ url_for('static', filename='images/logo_kfs.png') }}" alt="KFU">
+      <img src="{{ url_for('static', filename='images/logo_ai.png') }}" alt="AI">
+    </div>
+  </div>
+
+  <div class="success-body">
+    <div class="info-row">
+      <span class="lbl">Student Name</span>
+      <span class="val">{{ student_name }}</span>
+    </div>
+    <div class="info-row">
+      <span class="lbl">Student ID</span>
+      <span class="val code">{{ student_id }}</span>
+    </div>
+    <div class="info-row">
+      <span class="lbl">Course</span>
+      <span class="val">{{ sess.course_code }}</span>
+    </div>
+    <div class="info-row">
+      <span class="lbl">Session</span>
+      <span class="val" style="max-width:180px">{{ sess.title }}</span>
+    </div>
+    <div class="info-row">
+      <span class="lbl">Date</span>
+      <span class="val">{{ submitted_at.strftime('%d %b %Y') }}</span>
+    </div>
+    <div class="info-row">
+      <span class="lbl">Time</span>
+      <span class="val code">{{ submitted_at.strftime('%H:%M:%S') }}</span>
+    </div>
+
+    <div class="stamp">
+      <i class="bi bi-patch-check-fill"></i>
+      <div class="stamp-text">
+        <strong>Verified & Recorded</strong>
+        <span>Faculty of AI · Kafrelsheikh University</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>You may now close this page.<br>Your attendance has been saved to the system.</p>
+  </div>
+</div>
+
+</body>
+</html>

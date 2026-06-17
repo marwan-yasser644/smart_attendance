@@ -1,0 +1,102 @@
+# ✅ Mobile Data Access - Quick Reference
+
+## What Was Done
+
+The system is now **fully configured** for students to submit attendance using mobile data (not just campus Wi-Fi).
+
+### How It Works
+
+1. **Lecturer generates QR code** in the attendance session
+2. **System checks `BASE_URL` environment variable:**
+   - ✅ If set → QR code points to college's public server
+   - ⚠️ If not set → QR code points to local network only
+
+3. **Student scans QR code:**
+   - On campus Wi-Fi: Works ✅
+   - On mobile data: Works if `BASE_URL` is set ✅
+
+---
+
+## For College IT: One-Line Setup
+
+### Option 1: Public IP Address
+```bash
+export BASE_URL=http://192.168.1.50:5000
+gunicorn --workers 4 --bind 0.0.0.0:5000 app:app
+```
+
+### Option 2: College Domain
+```bash
+export BASE_URL=https://attendance.college.edu
+gunicorn --workers 4 --bind 0.0.0.0:5000 app:app
+```
+
+### Option 3: ngrok Testing
+```bash
+export BASE_URL=https://abc123.ngrok.io
+python run.py
+```
+
+**That's it!** Students can now scan QR codes and submit attendance from anywhere with internet.
+
+---
+
+## Verification
+
+### Test from Mobile Data
+
+1. Create an attendance session
+2. Download/copy the QR code URL
+3. Scan with phone on mobile data
+4. Submit attendance
+5. ✅ Should see success confirmation
+
+### Check Configuration
+
+```bash
+# Verify BASE_URL is set
+echo $BASE_URL
+
+# Should output: https://attendance.college.edu
+# or: http://192.168.1.50:5000
+```
+
+---
+
+## Common Scenarios
+
+| Scenario | BASE_URL | Works? |
+|----------|----------|--------|
+| Same building (Wi-Fi) | Not needed | ✅ Yes |
+| Campus (mobile data) | `http://192.168.1.50:5000` | ✅ Yes |
+| Off-campus | `https://attendance.college.edu` | ✅ Yes |
+| Demo/testing | `https://abc123.ngrok.io` | ✅ Yes |
+
+---
+
+## Files Updated
+
+✅ **app/config.py** - Added BASE_URL documentation
+✅ **app/services/attendance_service.py** - Already supports BASE_URL
+✅ **DEPLOYMENT.md** - Complete deployment guide with examples
+✅ **MOBILE_DATA_SETUP.md** - Dedicated setup guide for mobile data access
+✅ **README.md** - Added section on external student access
+
+---
+
+## Support
+
+- **See MOBILE_DATA_SETUP.md** for detailed IT setup guide
+- **See DEPLOYMENT.md** for production deployment steps
+- **Verify in code**: `app/services/attendance_service.py` line 8
+  ```python
+  base_url = current_app.config.get('BASE_URL') or request_obj.host_url
+  ```
+
+---
+
+## Bottom Line
+
+✅ **System is production-ready for mobile data access**
+
+Just set `BASE_URL` to your college's public server address, and students anywhere can submit attendance.
