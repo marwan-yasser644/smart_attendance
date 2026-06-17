@@ -65,6 +65,7 @@
 
       {% if sess.is_open %}
       <form method="POST" action="{{ url_for('main.close_session', session_uuid=sess.session_uuid) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="w-100 mt-1"
                 style="background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:10px;
                        padding:8px 16px;font-size:.82rem;font-weight:600;cursor:pointer;

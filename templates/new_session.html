@@ -21,6 +21,7 @@
       </p>
 
       <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="mb-3">
           <label class="form-label">Course Code <span style="color:var(--kfu-danger)">*</span></label>
           <input type="text" name="course_code" class="form-control"

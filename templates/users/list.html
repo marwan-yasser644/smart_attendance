@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="topbar fade-in">
+  <div>
+    <h1>User Management</h1>
+    <p style="color:var(--text-muted);font-size:.85rem;margin-top:3px">Manage Dean and TA accounts</p>
+  </div>
+  <a href="{{ url_for('main.users_create') }}" class="btn-primary-kfu">
+    <i class="bi bi-person-plus"></i> Create TA
+  </a>
+</div>
+
+<div class="card fade-in">
+  <div class="table-responsive">
+    <table class="sessions-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td style="font-weight:600">{{ u.name }}</td>
+          <td><span style="font-family:monospace;font-size:.82rem">{{ u.username or '—' }}</span></td>
+          <td style="font-size:.83rem;color:var(--text-muted)">{{ u.email }}</td>
+          <td>
+            {% if u.effective_role == 'DEAN' %}
+              <span class="badge-expired"><i class="bi bi-star-fill" style="font-size:.6rem"></i> DEAN</span>
+            {% else %}
+              <span class="badge-open">TA</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.is_active %}
+              <span style="color:var(--kfu-success);font-weight:600;font-size:.82rem"><i class="bi bi-check-circle-fill"></i> Active</span>
+            {% else %}
+              <span style="color:var(--kfu-danger);font-weight:600;font-size:.82rem"><i class="bi bi-x-circle-fill"></i> Disabled</span>
+            {% endif %}
+            {% if u.must_change_password %}
+              <br><span style="font-size:.7rem;color:var(--kfu-gold)"><i class="bi bi-exclamation-triangle"></i> Pwd reset pending</span>
+            {% endif %}
+          </td>
+          <td style="font-size:.8rem;color:var(--text-muted)">{{ u.created_at.strftime('%d %b %Y') }}</td>
+          <td>
+            <div class="d-flex gap-1 flex-wrap">
+              <a href="{{ url_for('main.users_edit', user_id=u.id) }}" class="btn-outline-kfu" style="font-size:.74rem;padding:4px 9px">
+                <i class="bi bi-pencil"></i> Edit
+              </a>
+              <button type="button" class="btn-outline-kfu" style="font-size:.74rem;padding:4px 9px"
+                      data-bs-toggle="modal" data-bs-target="#resetModal{{ u.id }}">
+                <i class="bi bi-key"></i> Reset
+              </button>
+              <form method="POST" action="{{ url_for('main.users_disable', user_id=u.id) }}" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-outline-kfu" style="font-size:.74rem;padding:4px 9px;{% if u.is_active %}border-color:#fca5a5;color:#dc2626{% else %}border-color:#86efac;color:#16a34a{% endif %}">
+                  {% if u.is_active %}<i class="bi bi-pause-circle"></i> Disable{% else %}<i class="bi bi-play-circle"></i> Enable{% endif %}
+                </button>
+              </form>
+            </div>
+
+            <!-- Reset password modal -->
+            <div class="modal fade" id="resetModal{{ u.id }}" tabindex="-1">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form method="POST" action="{{ url_for('main.users_reset_password', user_id=u.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Reset password — {{ u.name }}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      <label class="form-label">Temporary Password</label>
+                      <input type="text" name="temp_password" class="form-control" required minlength="8"
+                             placeholder="At least 8 characters">
+                      <p style="font-size:.78rem;color:var(--text-muted);margin-top:8px">
+                        The user will be forced to change this on next login.
+                      </p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn-outline-kfu" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn-primary-kfu">Reset Password</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Dean Dashboard{% endblock %}
+
+{% block content %}
+<div class="topbar fade-in">
+  <div>
+    <h1>Dean Dashboard</h1>
+    <p style="color:var(--text-muted);font-size:.85rem;margin-top:3px">
+      Faculty of Artificial Intelligence · Kafrelsheikh University
+    </p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <div class="user-badge">
+      <div class="avatar">{{ dean.name[0] }}</div>
+      {{ dean.name }}
+    </div>
+    <a href="{{ url_for('main.users_create') }}" class="btn-primary-kfu">
+      <i class="bi bi-person-plus"></i> Create TA
+    </a>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4 fade-in">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card blue">
+      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="stat-value">{{ total_tas }}</div>
+      <div class="stat-label">Total TAs ({{ active_tas }} active)</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card accent">
+      <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+      <div class="stat-value">{{ attendance_today }}</div>
+      <div class="stat-label">Check-ins Today</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card gold">
+      <div class="stat-icon"><i class="bi bi-clipboard-data"></i></div>
+      <div class="stat-value">{{ total_attendance }}</div>
+      <div class="stat-label">Total Check-ins</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card green">
+      <div class="stat-icon"><i class="bi bi-calendar3"></i></div>
+      <div class="stat-value">{{ total_sessions }}</div>
+      <div class="stat-label">Total Sessions</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 fade-in">
+  <!-- Chart -->
+  <div class="col-lg-7">
+    <div class="card p-4 h-100">
+      <h5 style="font-weight:700;margin-bottom:4px">Attendance — Last 7 Days</h5>
+      <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px">Daily student check-ins across all sessions</p>
+      <canvas id="attendanceChart" height="120"></canvas>
+    </div>
+  </div>
+
+  <!-- Recent records -->
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="p-3" style="border-bottom:1px solid var(--border)">
+        <h5 style="font-weight:700;margin:0">Recent Check-ins</h5>
+        <p style="font-size:.78rem;color:var(--text-muted);margin:0">Latest 10 attendance records</p>
+      </div>
+      {% if recent_records %}
+      <div class="table-responsive">
+        <table class="sessions-table">
+          <thead>
+            <tr><th>Student</th><th>ID</th><th>Time</th></tr>
+          </thead>
+          <tbody>
+            {% for r in recent_records %}
+            <tr>
+              <td style="font-weight:600">{{ r.student_name }}</td>
+              <td><span style="font-family:monospace;font-size:.8rem">{{ r.student_id }}</span></td>
+              <td style="font-size:.78rem;color:var(--text-muted)">{{ r.submitted_at.strftime('%d %b %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-inbox" style="font-size:2.2rem;color:#cbd5e1"></i>
+        <p style="margin-top:10px;color:var(--text-muted)">No attendance records yet</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const labels = {{ chart_labels | tojson }};
+  const values = {{ chart_values | tojson }};
+  const ctx = document.getElementById('attendanceChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Check-ins',
+          data: values,
+          backgroundColor: '#2563eb',
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      }
+    });
+  }
+</script>
+{% endblock %}

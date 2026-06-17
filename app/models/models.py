@@ -7,14 +7,47 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app import db
 
 
+# ── RBAC role constants ──────────────────────────────────────────────────────
+# The system has exactly two authenticated roles. They are stored on the
+# Lecturer table (which is the application's user table). Legacy values
+# 'admin' and 'lecturer' are normalised to DEAN / TA at read and migration time.
+ROLE_DEAN = 'DEAN'
+ROLE_TA = 'TA'
+VALID_ROLES = (ROLE_DEAN, ROLE_TA)
+
+# Maps historical/invalid role strings onto the canonical two-role set.
+_LEGACY_ROLE_MAP = {
+    'admin': ROLE_DEAN,
+    'dean': ROLE_DEAN,
+    'lecturer': ROLE_TA,
+    'ta': ROLE_TA,
+    'teaching_assistant': ROLE_TA,
+}
+
+
+def normalize_role(value: str | None) -> str:
+    """Coerce any stored/incoming role string to a valid canonical role.
+
+    Unknown or empty values fall back to TA (least privilege)."""
+    if not value:
+        return ROLE_TA
+    cleaned = value.strip()
+    if cleaned in VALID_ROLES:
+        return cleaned
+    return _LEGACY_ROLE_MAP.get(cleaned.lower(), ROLE_TA)
+
+
 class Lecturer(db.Model):
     __tablename__ = 'lecturers'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False, index=True)
-    role = db.Column(db.String(30), nullable=False, default='lecturer', server_default='lecturer')
+    username = db.Column(db.String(80), unique=True, nullable=True, index=True)
+    role = db.Column(db.String(20), nullable=False, default=ROLE_TA, server_default=ROLE_TA)
     password_hash = db.Column(db.String(256), nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False, server_default='1')
+    must_change_password = db.Column(db.Boolean, default=True, nullable=False, server_default='0')
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     sessions = db.relationship('AttendanceSession', back_populates='lecturer', lazy='select', cascade='all, delete-orphan')
@@ -25,9 +58,30 @@ class Lecturer(db.Model):
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
 
+    def set_role(self, value: str) -> None:
+        """Assign a role with server-side validation. Rejects invalid roles."""
+        candidate = (value or '').strip()
+        if candidate not in VALID_ROLES:
+            raise ValueError(f"Invalid role: {value!r}. Allowed roles: {', '.join(VALID_ROLES)}.")
+        self.role = candidate
+
+    @property
+    def effective_role(self) -> str:
+        """The canonical role, tolerant of legacy values still in the DB."""
+        return normalize_role(self.role)
+
+    @property
+    def is_dean(self) -> bool:
+        return self.effective_role == ROLE_DEAN
+
+    @property
+    def is_ta(self) -> bool:
+        return self.effective_role == ROLE_TA
+
     @property
     def is_admin(self) -> bool:
-        return self.role == 'admin'
+        # Backwards-compatible alias used by older code/templates.
+        return self.is_dean
 
 
 class Course(db.Model):

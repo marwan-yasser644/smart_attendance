@@ -304,17 +304,32 @@
   </div>
 
   <nav class="sidebar-nav">
-    <div class="nav-label">Main</div>
-    <a href="{{ url_for('main.dashboard') }}" class="{{ 'active' if request.endpoint == 'main.dashboard' }}">
-      <i class="bi bi-grid-1x2"></i> Dashboard
+    {% set role = session.get('lecturer_role') %}
+    {% if role == 'DEAN' %}
+    <div class="nav-label">Administration</div>
+    <a href="{{ url_for('main.dean_dashboard') }}" class="{{ 'active' if request.endpoint == 'main.dean_dashboard' }}">
+      <i class="bi bi-speedometer2"></i> Dean Dashboard
+    </a>
+    <a href="{{ url_for('main.users_list') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('main.users') }}">
+      <i class="bi bi-people"></i> User Management
+    </a>
+    <a href="{{ url_for('main.users_create') }}" class="{{ 'active' if request.endpoint == 'main.users_create' }}">
+      <i class="bi bi-person-plus"></i> Create TA
+    </a>
+    {% endif %}
+
+    <div class="nav-label" style="margin-top:8px">Attendance</div>
+    <a href="{{ url_for('main.ta_dashboard') }}" class="{{ 'active' if request.endpoint == 'main.ta_dashboard' }}">
+      <i class="bi bi-grid-1x2"></i> My Sessions
     </a>
     <a href="{{ url_for('main.new_session') }}" class="{{ 'active' if request.endpoint == 'main.new_session' }}">
       <i class="bi bi-plus-circle"></i> New Session
     </a>
 
     <div class="nav-label" style="margin-top:8px">Account</div>
-    <a href="#">
-      <i class="bi bi-person-circle"></i> {{ session.get('lecturer_name','Lecturer') }}
+    <a href="{{ url_for('main.change_password') }}" class="{{ 'active' if request.endpoint == 'main.change_password' }}">
+      <i class="bi bi-person-circle"></i> {{ session.get('lecturer_name','User') }}
+      <span style="margin-left:auto;font-size:.6rem;background:var(--kfu-gold);color:var(--kfu-navy);padding:2px 7px;border-radius:10px;font-weight:700">{{ role or 'TA' }}</span>
     </a>
   </nav>
 

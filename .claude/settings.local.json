@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/dev/**)",
+      "Bash(rm templates/register.html)",
+      "Bash(mkdir -p templates/users templates/errors)",
+      "Bash(python -c \"import sys; print\\(sys.version\\)\")",
+      "Bash(python -c \"import flask_wtf; print\\('flask_wtf', flask_wtf.__version__\\)\")",
+      "Bash(cp instance/attendance.db instance/attendance.db.bak)",
+      "Bash(python -c ' *)",
+      "Bash(cp instance/attendance.db.bak instance/attendance.db)",
+      "Bash(rm -f instance/attendance.db.bak)",
+      "Bash(python -m pytest tests/ -q)",
+      "Bash(python -m unittest tests.test_basic -v)",
+      "Bash(python create_dean.py --name \"Test Dean\" --email \"dean2@kfu.edu.eg\" --username \"dean2\" --password \"DeanPass123\")",
+      "mcp__ide__getDiagnostics"
+    ]
+  }
+}
